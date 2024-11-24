@@ -1,3 +1,4 @@
+
 #[derive(Debug)]
 pub struct Car {
     pub id: Option<i32>,
@@ -8,6 +9,22 @@ pub struct Car {
     pub mileage: i32,
     pub is_new: bool,
 }
+
+impl Car {
+    pub fn pretty_print_car(&self) -> String {
+        format!(
+            "id: {}\nbrand: {}\nmodel: {}\nyear: {}\nprice: {}\nmileage: {}\nis_new: {}",
+            self.id.unwrap_or_default(),
+            self.brand,
+            self.model,
+            self.year,
+            self.price,
+            self.mileage,
+            if self.is_new { "Новый" } else { "Не новый" }
+        )
+    }
+}
+
 #[derive(Debug)]
 pub struct Customer {
     pub id: Option<i32>,
@@ -16,6 +33,20 @@ pub struct Customer {
     pub email: Option<String>,
     pub budget: i32,
 }
+
+impl Customer {
+    pub fn pretty_print_customers(&self) -> String {
+        format!(
+            "id: {}\nname: {}\nphone: {}\nemail: {}\nbudget: {}",
+            self.id.unwrap_or_default(),
+            self.name,
+            self.phone,
+            self.email.clone().unwrap_or_else(|| String::from("Не указан")),
+            self.budget
+        )
+    }
+}
+
 
 #[derive(Debug)]
 pub struct Employee {
@@ -35,6 +66,21 @@ pub struct Order {
     pub order_date: String,
     pub price: i32,
     pub is_active: bool,
+}
+
+impl Order {
+    pub fn pretty_print_orders(&self) -> String {
+        format!(
+            "id: {}\ncar_id: {}\ncustomer_id: {}\nemployee_id: {}\norder_date: {}\nprice: {}\nis_active: {}\n",
+            self.id.unwrap_or_default(),
+            self.car_id,
+            self.customer_id,
+            self.employee_id,
+            self.order_date,
+            self.price,
+            self.is_active
+        )
+    }
 }
 
 #[derive(Debug)]
