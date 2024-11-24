@@ -104,8 +104,8 @@ async fn main() -> Result<(), Error> {
             "1" => { // sign in
                 println!("Напишите ваш id: ");
                 let mut id = String::new();
-                io::stdout().flush().unwrap();  //чтобы вывелся println
-                io::stdin().read_line(&mut id).unwrap(); //ожидает ввод
+                io::stdout().flush().unwrap();
+                io::stdin().read_line(&mut id).unwrap();
                 id = id.trim().parse().unwrap();
                 current_id_empl = id.trim().parse().expect("Ошибка");
 
