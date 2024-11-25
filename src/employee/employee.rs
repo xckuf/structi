@@ -9,7 +9,6 @@ async fn connect() -> Result<Client, Error> {
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
     let (client, connection) = tokio_postgres::connect(&database_url, NoTls).await?;
 
-    // Запускаем соединение в фоновом режиме
     tokio::spawn(async move {
         if let Err(e) = connection.await {
             eprintln!("Ошибка подключения к базе данных: {}", e);
