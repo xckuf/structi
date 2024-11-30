@@ -1,35 +1,34 @@
 use crate::models::models::Car;
-use tokio_postgres::{ NoTls, Error, Client };
-use dotenv::dotenv;
-use std::env;
+use tokio_postgres::{ Error, Client };
 
-async fn connect() -> Result<Client, Error> {
-    dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
-    let (client, connection) = tokio_postgres::connect(&database_url, NoTls).await?;
-
-    tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("Ошибка подключения к базе данных: {}", e);
-        }
-    });
-
-    client.execute(
-        "CREATE TABLE IF NOT EXISTS car (
-            id SERIAL PRIMARY KEY,
-            brand VARCHAR(100) NOT NULL,
-            model VARCHAR(100) NOT NULL,
-            year INTEGER NOT NULL,
-            price INTEGER NOT NULL,
-            mileage INTEGER NOT NULL,
-            is_new BOOLEAN NOT NULL DEFAULT FALSE
-        )",
-        &[],
-    ).await?;
-
-    Ok(client)
-}
+// async fn connect() -> Result<Client, Error> {
+//     dotenv().ok();
+//
+//     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
+//     let (client, connection) = tokio_postgres::connect(&database_url, NoTls).await?;
+//
+//     tokio::spawn(async move {
+//         if let Err(e) = connection.await {
+//             eprintln!("Ошибка подключения к базе данных: {}", e);
+//         }
+//     });
+//
+//     client.execute(
+//         "CREATE TABLE IF NOT EXISTS car (
+//             id SERIAL PRIMARY KEY,
+//             brand VARCHAR(100) NOT NULL,
+//             model VARCHAR(100) NOT NULL,
+//             year INTEGER NOT NULL,
+//             price INTEGER NOT NULL,
+//             mileage INTEGER NOT NULL,
+//             is_new BOOLEAN NOT NULL DEFAULT FALSE
+//         )",
+//         &[],
+//     ).await?;
+//
+//     Ok(client)
+// }
 
 pub async fn create_car(client: &Client, car: Car) -> Result<i32, Error> {
     let row = client.query_one(
@@ -39,20 +38,28 @@ pub async fn create_car(client: &Client, car: Car) -> Result<i32, Error> {
     Ok(row.get(0))
 }
 
-pub async fn update_car(client: &Client, car_id: i32, updated_car: Car) -> Result<(), Error> {
-    client.execute(
+pub async fn update_car(client: &Client, car_id: i32, updated_car: Car) -> Result<String, Error> {
+    let result = client.execute(
         "UPDATE car SET brand = $2, model = $3, year = $4, price = $5, mileage = $6, is_new = $7 WHERE id = $1",
         &[&car_id, &updated_car.brand, &updated_car.model, &updated_car.year, &updated_car.price, &updated_car.mileage, &updated_car.is_new],
     ).await?;
-    Ok(())
+    if result > 0 {
+        Ok("\n\n\nИзменения успешно сохранены".to_string())
+    } else {
+        Ok("\n\n\nИзменения не применены".to_string())
+    }
 }
 
-pub async fn delete_car(client: &Client, car_id: i32) -> Result<(), Error> {
-    client.execute(
+pub async fn delete_car(client: &Client, car_id: i32) -> Result<String, Error> {
+    let result = client.execute(
         "DELETE FROM car WHERE id = $1",
         &[&car_id],
     ).await?;
-    Ok(())
+    if result > 0 {
+        Ok("\n\n\nИзменения успешно сохранены".to_string())
+    } else {
+        Ok("\n\n\nУдаление не выполнено".to_string())
+    }
 }
 
 pub async fn get_car(client: &Client, car_id: i32) -> Result<Option<Car>, Error> {
@@ -76,7 +83,7 @@ pub async fn get_car(client: &Client, car_id: i32) -> Result<Option<Car>, Error>
     }
 }
 
-pub async fn budget_car_do(client: &Client, budget: i32) -> Result<Vec<Car>, Error> {
+pub async fn budget_car_under(client: &Client, budget: i32) -> Result<Vec<Car>, Error> {
     let query = "SELECT id, brand, model, year, price, mileage, is_new FROM car WHERE price <= $1";
 
     let rows = client.query(query, &[&budget]).await?;
@@ -97,7 +104,7 @@ pub async fn budget_car_do(client: &Client, budget: i32) -> Result<Vec<Car>, Err
     Ok(cars)
 }
 
-pub async fn budget_car_ot(client: &Client, budget: i32) -> Result<Vec<Car>, Error> {
+pub async fn budget_car_upper(client: &Client, budget: i32) -> Result<Vec<Car>, Error> {
     let query = "SELECT id, brand, model, year, price, mileage, is_new FROM car WHERE price >= $1";
 
     let rows = client.query(query, &[&budget]).await?;
@@ -133,23 +140,29 @@ pub async fn search_cars(
     );
     let mut params: Vec<&(dyn tokio_postgres::types::ToSql + Sync)> = Vec::new();
 
-    let mut brand1 = String::new();
-    let mut model1 = String::new();
-    let mut year1 = None;
-    let mut price1 = None;
-    let mut mileage1 = None;
-    let mut is_new1 = None;
+    let mut id1 = None;
+    let brand1 ;
+    let model1 ;
+    let year1;
+    let price1;
+    let mileage1 ;
+    let is_new1 ;
 
+    if let Some(id) = id {
+        query.push_str(&format!(" AND id = {}", params.len() + 1));
+        id1 = Some(id);
+        params.push(&id1);
+    }
 
     if let Some(brand) = brand {
-        query.push_str(&format!(" AND brand = ${}", params.len() + 1));
-        brand1 = brand.to_string();
+        query.push_str(&format!(" AND brand ILIKE ${}", params.len() + 1));
+        brand1 = format!("%{}%", brand.trim());
         params.push(&brand1);
     }
 
     if let Some(model) = model {
-        query.push_str(&format!(" AND model = ${}", params.len() + 1));
-        model1 = model.to_string();
+        query.push_str(&format!(" AND model ILIKE ${}", params.len() + 1));
+        model1 = format!("%{}%", model.trim());
         params.push(&model1);
     }
 

@@ -1,13 +1,11 @@
 use tokio_postgres::{Error, Client};
-use tokio;
 use std::io::{self, Write};
 use std::option::Option;
-use crate::car::car::{budget_car_do, budget_car_ot, search_cars};
-use crate::models::models::Car;
+use crate::car::car::{budget_car_under, budget_car_upper, search_cars};
 
 pub async fn find_car(client: &Client, ) -> Result<(), Error> {
     let mut int = String::new();
-    println!("1 - По бюджету");
+    println!("\n\n\n1 - По бюджету");
     println!("2 - По определенным фильтрам");
     println!("3 - Выход");
 
@@ -33,7 +31,7 @@ pub async fn find_car(client: &Client, ) -> Result<(), Error> {
 
                     match budget1.trim().parse::<i32>() {
                         Ok(budget) => {
-                            match budget_car_do(&client, budget).await {
+                            match budget_car_under(&client, budget).await {
                                 Ok(cars) => {
                                     if cars.is_empty() {
                                         println!("Нет автомобилей с ценой до {}", budget);
@@ -67,7 +65,7 @@ pub async fn find_car(client: &Client, ) -> Result<(), Error> {
 
                     match budget1.trim().parse::<i32>() {
                         Ok(budget) => {
-                            match budget_car_ot(&client, budget).await {
+                            match budget_car_upper(&client, budget).await {
                                 Ok(cars) => {
                                     if cars.is_empty() {
                                         println!("Нет автомобилей с ценой от {}", budget);
@@ -108,7 +106,7 @@ pub async fn find_car(client: &Client, ) -> Result<(), Error> {
             let mut is_new: Option<bool> = None;
 
             loop {
-                println!("1) id: {:?}", id1);
+                println!("\n\n\n1) id: {:?}", id1);
                 println!("2) Марка: {:?}", brand1);
                 println!("3) Модель: {:?}", model1);
                 println!("4) Год: {:?}", year1);
@@ -174,18 +172,18 @@ pub async fn find_car(client: &Client, ) -> Result<(), Error> {
                     "8" => break,
                     _ => println!("Неверный ввод")
                 }
-                match search_cars(&client, id1, brand1.clone(), model1.clone(), year1, price1, mileage1, is_new).await {
-                    Ok(cars) => {
-                        if cars.is_empty() {
-                            println!("Автомобили не найдены")
-                        } else {
-                            for car in cars {
-                                println!("{}", car.pretty_print_car());
-                            }
+            }
+            match search_cars(&client, id1, brand1, model1, year1, price1, mileage1, is_new).await {
+                Ok(cars) => {
+                    if cars.is_empty() {
+                        println!("Автомобили не найдены")
+                    } else {
+                        for car in cars {
+                            println!("{}", car.pretty_print_car());
                         }
                     }
-                    Err(err) => eprintln!("Ошибка при поиске автомобиля: {:?}", err)
                 }
+                Err(err) => eprintln!("Ошибка при поиске автомобиля: {:?}", err)
             }
         },
         "3" => {

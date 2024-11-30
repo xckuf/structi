@@ -13,7 +13,7 @@ pub struct Car {
 impl Car {
     pub fn pretty_print_car(&self) -> String {
         format!(
-            "id: {}\nbrand: {}\nmodel: {}\nyear: {}\nprice: {}\nmileage: {}\nis_new: {}",
+            "\n\n\nid: {}\nbrand: {}\nmodel: {}\nyear: {}\nprice: {}\nmileage: {}\nis_new: {}",
             self.id.unwrap_or_default(),
             self.brand,
             self.model,
@@ -37,7 +37,7 @@ pub struct Customer {
 impl Customer {
     pub fn pretty_print_customers(&self) -> String {
         format!(
-            "id: {}\nname: {}\nphone: {}\nemail: {}\nbudget: {}",
+            "\n\n\nid: {}\nname: {}\nphone: {}\nemail: {}\nbudget: {}",
             self.id.unwrap_or_default(),
             self.name,
             self.phone,
@@ -68,27 +68,27 @@ pub struct Order {
     pub is_active: bool,
 }
 
-impl Order {
-    pub fn pretty_print_orders(&self) -> String {
-        format!(
-            "id: {}\ncar_id: {}\ncustomer_id: {}\nemployee_id: {}\norder_date: {}\nprice: {}\nis_active: {}\n",
-            self.id.unwrap_or_default(),
-            self.car_id,
-            self.customer_id,
-            self.employee_id,
-            self.order_date,
-            self.price,
-            self.is_active
-        )
-    }
-}
+// impl Order {
+//     pub fn pretty_print_orders(&self) -> String {
+//         format!(
+//             "\n\n\nid: {}\ncar_id: {}\ncustomer_id: {}\nemployee_id: {}\norder_date: {}\nprice: {}\nis_active: {}\n",
+//             self.id.unwrap_or_default(),
+//             self.car_id,
+//             self.customer_id,
+//             self.employee_id,
+//             self.order_date,
+//             self.price,
+//             self.is_active
+//         )
+//     }
+// }
 
-#[derive(Debug)]
-pub struct Dealership {
-    pub id: Option<i32>,
-    pub name: String,
-    pub location: String,
-    pub employees: Vec<Employee>,
-    pub cars: Vec<Car>,
-    pub orders: Vec<Order>,
-}
+// #[derive(Debug)]
+// pub struct Dealership {
+//     pub id: Option<i32>,
+//     pub name: String,
+//     pub location: String,
+//     pub employees: Vec<Employee>,
+//     pub cars: Vec<Car>,
+//     pub orders: Vec<Order>,
+// }

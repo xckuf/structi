@@ -1,33 +1,32 @@
 use crate::models::models::Customer;
-use tokio_postgres::{ NoTls, Error, Client };
-use dotenv::dotenv;
-use std::env;
+use tokio_postgres::{ Error, Client };
 
-async fn connect() -> Result<Client, Error> {
-    dotenv().ok();
 
-    let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
-    let (client, connection) = tokio_postgres::connect(&database_url, NoTls).await?;
-
-    tokio::spawn(async move {
-        if let Err(e) = connection.await {
-            eprintln!("Ошибка подключения к базе данных: {}", e);
-        }
-    });
-
-    client.execute(
-        "CREATE TABLE IF NOT EXISTS customer (
-            id SERIAL PRIMARY KEY,
-            name VARCHAR(100) NOT NULL,
-            phone VARCHAR(50) NOT NULL,
-            email VARCHAR(100) ,
-            budget INTEGER NOT NULL
-        )",
-        &[],
-    ).await?;
-
-    Ok(client)
-}
+// async fn connect() -> Result<Client, Error> {
+//     dotenv().ok();
+//
+//     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
+//     let (client, connection) = tokio_postgres::connect(&database_url, NoTls).await?;
+//
+//     tokio::spawn(async move {
+//         if let Err(e) = connection.await {
+//             eprintln!("Ошибка подключения к базе данных: {}", e);
+//         }
+//     });
+//
+//     client.execute(
+//         "CREATE TABLE IF NOT EXISTS customer (
+//             id SERIAL PRIMARY KEY,
+//             name VARCHAR(100) NOT NULL,
+//             phone VARCHAR(50) NOT NULL,
+//             email VARCHAR(100) ,
+//             budget INTEGER NOT NULL
+//         )",
+//         &[],
+//     ).await?;
+//
+//     Ok(client)
+// }
 
 pub async fn create_customer(client: &Client, customer: Customer) -> Result<i32, Error> {
     let row = client.query_one(
@@ -43,9 +42,9 @@ pub async fn update_customer(client: &Client, customer_id: i32, updated_customer
         &[&customer_id, &updated_customer.name, &updated_customer.phone, &updated_customer.email, &updated_customer.budget],
     ).await?;
     if result > 0 {
-        Ok("Изменения успешно сохранены".to_string())
+        Ok("\n\n\nИзменения успешно сохранены".to_string())
     } else {
-        Ok("Изменения не применены".to_string())
+        Ok("\n\n\nИзменения не применены".to_string())
     }
 }
 
@@ -56,9 +55,9 @@ pub async fn delete_customer(client: &Client, customer_id: i32) -> Result<String
     ).await?;
 
     if result > 0 {
-        Ok("Изменения успешно сохранены".to_string())
+        Ok("\n\n\nИзменения успешно сохранены".to_string())
     } else {
-        Ok("Удаление не выполнено".to_string())
+        Ok("\n\n\nУдаление не выполнено".to_string())
     }
 }
 
@@ -112,10 +111,10 @@ pub async fn search_customer(
     let mut params: Vec<&(dyn tokio_postgres::types::ToSql + Sync)> = Vec::new();
 
     let mut id1 = None;
-    let mut name1 = String::new();
-    let mut phone1 = String::new();
-    let mut email1 = String::new();
-    let mut budget1 = None;
+    let name1;
+    let phone1;
+    let email1;
+    let budget1;
 
    if let Some(id) = id {
        query.push_str(&format!(" AND id = ${}", params.len() + 1));

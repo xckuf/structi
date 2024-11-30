@@ -1,12 +1,12 @@
 use tokio_postgres::{Error, Client};
-use tokio;
 use std::io::{self};
 
 use crate::customer::customer::{get_customer};
 use crate::employee::employee::{get_employee};
 use crate::order::order::{get_order};
-use crate::validation::validation::{from_str_to_int, input_error};
 use crate::car::car::{get_car};
+use crate::prelude::prelude_valid::*;
+use crate::sleep::sleep_700mil::sleep_700mil;
 
 pub async fn search(client: &Client) -> Result<(), Error> {
     let mut input = String::new();
@@ -29,8 +29,8 @@ pub async fn search(client: &Client) -> Result<(), Error> {
             match get_customer(&client, id.await).await {
                 Ok(Some(customer)) => {
                     match customer.id {
-                        Some(id) => println!("id: {}", id),
-                        None => println!("id: Не найдено")
+                        Some(id) => println!("\n\n\nid: {}", id),
+                        None => println!("\n\n\nid: Не найдено")
                     }
                     println!("Имя: {}", customer.name);
                     println!("Телефон: {}", customer.phone);
@@ -39,14 +39,17 @@ pub async fn search(client: &Client) -> Result<(), Error> {
                         None => println!("Email: Не указано")
                     }
                     println!("Бюджет: {}", customer.budget);
+                    sleep_700mil().await;
                     Ok(())
                 }
                 Ok(None) => {
                     println!("Клиент не найден");
+                    sleep_700mil().await;
                     Ok(())
                 }
                 Err(err) => {
                     eprintln!("Ошибка при получении клиента: {}", err);
+                    sleep_700mil().await;
                     Err(err)
                 }
             }
@@ -60,21 +63,24 @@ pub async fn search(client: &Client) -> Result<(), Error> {
             match get_employee(&client, id.await).await {
                 Ok(Some(employee)) => {
                     match employee.id {
-                        Some(id) => println!("id: {}", id),
-                        None => println!("id: Не найдено")
+                        Some(id) => println!("\n\n\nid: {}", id),
+                        None => println!("\n\n\nid: Не найдено")
                     }
                     println!("Имя: {}", employee.name);
                     println!("Должность: {}", employee.position);
                     println!("Зарплата: {}", employee.salary);
                     println!("Работает с {}", employee.hire_date);
+                    sleep_700mil().await;
                     Ok(())
                 }
                 Ok(None) => {
                     println!("Работник не найден");
+                    sleep_700mil().await;
                     Ok(())
                 }
                 Err(err) => {
                     eprintln!("Ошибка при получении работника: {}", err);
+                    sleep_700mil().await;
                     Err(err)
                 }
             }
@@ -97,14 +103,17 @@ pub async fn search(client: &Client) -> Result<(), Error> {
                     println!("Цена: {}", car.price);
                     println!("Пробег: {}", car.mileage);
                     println!("Новый: {}", car.is_new);
+                    sleep_700mil().await;
                     Ok(())
                 }
                 Ok(None) => {
                     println!("Автомобиль не найдена");
+                    sleep_700mil().await;
                     Ok(())
                 }
                 Err(err) => {
                     eprintln!("Ошибка при получении автомобиля: {}", err);
+                    sleep_700mil().await;
                     Err(err)
                 }
             }
@@ -130,24 +139,29 @@ pub async fn search(client: &Client) -> Result<(), Error> {
                     println!("Дата заказа: {}", order.order_date);
                     println!("Цена: {}", order.price);
                     println!("Активен: {}", order.is_active);
+                    sleep_700mil().await;
                     Ok(())
                 }
                 Ok(None) => {
                     println!("Заказ не найден");
+                    sleep_700mil().await;
                     Ok(())
                 },
                 Err(err) => {
                     eprintln!("Ошибка при получении заказа: {}", err);
+                    sleep_700mil().await;
                     Err(err)
                 }
             }
         },
         "5" => {
             println!("Выход из поиска.");
+            sleep_700mil().await;
             Ok(())
         }
         _ => {
             input_error().await;
+            sleep_700mil().await;
             Ok(())
         }
     }

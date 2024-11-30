@@ -1,21 +1,12 @@
-use tokio_postgres::{NoTls, Error, GenericClient};
-use tokio;
+use tokio_postgres::{NoTls, Error};
 use std::io::{self, Write};
-use std::{time::Duration};
-use async_std::task;
 use dotenv::dotenv;
 use std::env;
+use chrono::Local;
 
-use crate::order::new_order::new_order;
-use crate::customer::add_customer::add_customer;
-use crate::customer::choose_customer::choose_customer;
-use crate::car::find_car::find_car;
-use crate::car::add_car::add_car;
-use crate::validation::search::search;
-use crate::validation::settings::settings;
-use crate::employee::employee::{create_employee, get_employee};
-use crate::models::models::{Employee};
-use crate::validation::validation::{input_error};
+mod prelude;
+use prelude::prelude_main::*;
+
 
 mod customer;
 mod employee;
@@ -23,14 +14,15 @@ mod order;
 mod car;
 mod models;
 mod validation;
+mod enums;
+mod settings;
+mod sleep;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
-
     dotenv().ok();
 
     let database_url = env::var("DATABASE_URL").expect("DATABASE_URL must be set in .env file");
-
 
     let (client, connection) = tokio_postgres::connect(&database_url, NoTls).await?;
     tokio::spawn(async move {
@@ -101,11 +93,11 @@ async fn main() -> Result<(), Error> {
         io::stdin().read_line(&mut input).expect("Ошибка при чтении");
 
         match input.as_str().trim() {
-            "1" => { // sign in
+            "1" => { //войти
                 println!("Напишите ваш id: ");
                 let mut id = String::new();
-                io::stdout().flush().unwrap();  //чтобы вывелся println
-                io::stdin().read_line(&mut id).unwrap(); //ожидает ввод
+                io::stdout().flush().unwrap();
+                io::stdin().read_line(&mut id).unwrap();
                 id = id.trim().parse().unwrap();
                 current_id_empl = id.trim().parse().expect("Ошибка");
 
@@ -119,31 +111,56 @@ async fn main() -> Result<(), Error> {
                         println!("salary: {}", employee.salary);
                         println!("hire_date: {}", employee.hire_date);
                     },
-                    Ok(None) => println!("Такого сотрудника не существует."),
-                    Err(err) => println!("Ошибка при выполнении запроса: {:?}", err)
+                    Ok(None) => {
+                        println!("Такого сотрудника не существует.");
+                        std::process::exit(1);
+                    },
+                    Err(err) => {
+                        println!("Ошибка при выполнении запроса: {:?}", err);
+                        std::process::exit(1);
+                    }
                 }
                 break;
             },
-            "2" => {
-                println!("Напишите Ваше имя:");
-                let mut name1 = String::new();
-                io::stdout().flush().unwrap();
-                io::stdin().read_line(&mut name1).unwrap();
-                name1 = name1.trim().parse().unwrap();
+            "2" => {//создать работника
+                let name1 = loop {
+                    let mut input = String::new();
+                    println!("\n\n\nВведите Ваше имя:");
+                    io::stdout().flush().unwrap();
+                    io::stdin().read_line(&mut input).unwrap();
+                    let trimmed = input.trim();
+                    if !trimmed.is_empty() {
+                        break trimmed.to_string();
+                    } else {
+                        println!("\n\nОшибка: Ваше имя не может быть пустым. Пожалуйста, повторите ввод.");
+                    }
+                };
 
-                println!("Напишите Вашу должность:");
-                let mut position1 = String::new();
-                io::stdout().flush().unwrap();
-                io::stdin().read_line(&mut position1).unwrap();
-                position1 = position1.trim().parse().unwrap();
+                let position1 = loop {
+                    let mut input = String::new();
+                    println!("\n\n\nВведите Вашу должность:");
+                    io::stdout().flush().unwrap();
+                    io::stdin().read_line(&mut input).unwrap();
+                    let trimmed = input.trim();
+                    if !trimmed.is_empty() {
+                        break trimmed.to_string();
+                    } else {
+                        println!("\n\nОшибка: Ваша должность не может быть пустой. Пожалуйста, повторите ввод.");
+                    }
+                };
 
-                println!("Напишите Вашу зарплату:");
-                let mut salary1_str = String::new();
-                io::stdout().flush().unwrap();
-                io::stdin().read_line(&mut salary1_str).unwrap();
-                let salary1: i32 = salary1_str.trim().parse().expect("Ошибка с числом ..130");
+                let salary1 = loop {
+                    let mut input = String::new();
+                    println!("\n\n\nВведите Вашу зарплату:");
+                    io::stdout().flush().unwrap();
+                    io::stdin().read_line(&mut input).unwrap();
+                    match input.trim().parse::<i32>() {
+                        Ok(salary) => break salary,
+                        Err(_) => println!("\n\nОшибка: зарплата должна быть числом. Пожалуйста, повторите ввод.\n\n"),
+                    }
+                };
 
-                let date = String::new();
+                let date = Local::now().format("%d.%m.%Y").to_string();
 
                 let new_empl = Employee {
                     id: None,
@@ -155,35 +172,36 @@ async fn main() -> Result<(), Error> {
 
                 match create_employee(&client, new_empl).await {
                     Ok(employee_id) => {
-                        println!("Новый сотрудник создан с ID: {}", employee_id);
+                        println!("\n\n\nНовый сотрудник создан с ID: {}", employee_id);
                         current_id_empl = employee_id;
                     },
-                    Err(err) => eprintln!("Ошибка при добавлении сотрудника: {:?}", err),
+                    Err(err) => eprintln!("\n\n\nОшибка при добавлении сотрудника: {:?}", err),
                 }
                 break;
             },
             _ => {
-                println!("Неверный ввод");
+                println!("\n\n\nНеверный ввод\n\n\n");
                 input.clear();
             }
         }
 
-        task::sleep(Duration::from_secs(1)).await;
+        sleep_700mil().await;
     }
 
-    task::sleep(Duration::from_secs(1)).await;
+    sleep_700mil().await;
 
     loop {
         let mut choose = String::new();
 
         println!("\n\n\n1 - Создать заказ");
-        println!("2 - Добавить клиента");
-        println!("3 - Выбрать клиента");
-        println!("4 - Подобрать автомобиль");
-        println!("5 - Добавить автомобиль");
-        println!("6 - Поиск");
-        println!("7 - Настройки");
-        println!("8 - Выход");
+        println!("2 - Закрыть заказ");
+        println!("3 - Добавить клиента");
+        println!("4 - Выбрать клиента");
+        println!("5 - Подобрать автомобиль");
+        println!("6 - Добавить автомобиль");
+        println!("7 - Поиск");
+        println!("8 - Настройки");
+        println!("9 - Выход");
 
         io::stdin().read_line(&mut choose).expect("Ошибка");
 
@@ -193,10 +211,11 @@ async fn main() -> Result<(), Error> {
                     match new_order(current_id_cust, current_id_empl, &client).await {
                         Ok(order_id) => {
                             if order_id != 0 {
-                                println!("Создан новый заказ с ID: {}", order_id);
+                                sleep_700mil().await;
                                 break
                             } else {
                                 println!("Заказ не был создан.");
+                                sleep_700mil().await;
                                 break
                             }
                         }
@@ -207,11 +226,18 @@ async fn main() -> Result<(), Error> {
                     }
                 }
             },
-            "2" => {//добавить клиента
+            "2" => {//закрыть заказ
+                match close_order(&client).await {
+                    Ok(_) => sleep_700mil().await,
+                    Err(_) => sleep_700mil().await,
+                }
+            },
+            "3" => {//добавить клиента
                 loop {
                     match add_customer(&client, &mut current_id_cust).await {
                         Ok(customer_id) => {
-                            println!("Новый клиент с ID {} успешно добавлен!", customer_id);
+                            current_id_cust = customer_id;
+                            sleep_700mil().await;
                             break
                         },
                         Err(err) => {
@@ -221,12 +247,12 @@ async fn main() -> Result<(), Error> {
                     }
                 }
             },
-            "3" => { //выбрать клиента
+            "4" => { //выбрать клиента
                 loop {
                     match choose_customer(&client, &mut current_id_cust).await {
                         Ok(Some(customer)) => {
-                            println!("Выбран клиент:");
-                            println!("ID: {}", customer.id.unwrap_or(0));
+                            println!("\n\n\nВыбран клиент:");
+                            println!("id: {}", customer.id.unwrap_or(0));
                             println!("Имя: {}", customer.name);
                             println!("Телефон: {}", customer.phone);
                             println!(
@@ -237,34 +263,34 @@ async fn main() -> Result<(), Error> {
                             break;
                         }
                         Ok(None) => {
-                            println!("Клиент не был выбран. Попробуйте снова.");
+                            println!("\n\n\nКлиент не был выбран. Попробуйте снова.");
                         }
                         Err(err) => {
-                            eprintln!("Ошибка при выборе клиента: {:?}", err);
+                            eprintln!("\n\n\nОшибка при выборе клиента: {:?}", err);
                             break;
                         }
                     }
                 }
             },
-            "4" => { //подобрать автомобиль
+            "5" => { //подобрать автомобиль
                 loop {
                     match find_car(&client).await {
                         Ok(()) => {
-                            println!("Подбор автомобиля завершён.");
+                            println!("\n\n\nПодбор автомобиля завершён.");
                             break;
                         }
                         Err(err) => {
-                            eprintln!("Ошибка при подборе автомобиля: {:?}", err);
+                            eprintln!("\n\n\nОшибка при подборе автомобиля: {:?}", err);
                             break;
                         }
                     }
                 }
             },
-            "5" => { //добавить автомобиль
+            "6" => { //добавить автомобиль
                 loop {
                     match add_car(&client).await {
                         Ok(_) => {
-                            println!("Добавление автомобиля завершено.");
+                            sleep_700mil().await;
                             break;
                         }
                         Err(err) => {
@@ -274,7 +300,7 @@ async fn main() -> Result<(), Error> {
                     }
                 }
             },
-            "6" => {
+            "7" => {
                 loop {
                     match search(&client).await {
                         Ok(_) => break,
@@ -285,20 +311,23 @@ async fn main() -> Result<(), Error> {
                     }
                 }
             },
-            "7" => {//настройки
+            "8" => {//настройки
                 loop {
                     match settings(&client).await {
                         Ok(_) => {
                             println!("Возврат в главное меню...");
+                            sleep_700mil().await;
+                            break;
                         }
                         Err(err) => {
                             eprintln!("Ошибка в настройках: {:?}", err);
+                            sleep_700mil().await;
                             break;
                         }
                     }
                 }
             },
-            "8" => {
+            "9" => {
                 println!("\n\n\nВсего хорошего! До свидания!");
                 break
             }

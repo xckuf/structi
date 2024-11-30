@@ -2,11 +2,11 @@ use std::io::{self};
 use tokio_postgres::{ Error, Client };
 use crate::models::models::{Customer};
 use crate::customer::customer::{get_all_customers, search_customer};
-use crate::validation::validation::input_error;
+use crate::prelude::prelude_valid::*;
 
 pub async fn choose_customer(client: &Client, current_id_cust: &mut i32) -> Result<Option<Customer>, Error> {
     let mut choice = String::new(); //TODO
-    println!("1 - Вывести всех клиентов");
+    println!("\n\n\n1 - Вывести всех клиентов");
     println!("2 - Найти клиента по фильтрам");
 
     io::stdin().read_line(&mut choice).expect("Ошибка");
@@ -30,7 +30,7 @@ pub async fn choose_customer(client: &Client, current_id_cust: &mut i32) -> Resu
                         println!("Бюджет: {}\n\n", customer.budget);
                     }
 
-                    println!("Введите ID клиента для выбора:");
+                    println!("\n\n\nВведите id клиента для выбора:");
                     let mut id_input = String::new();
                     io::stdin().read_line(&mut id_input).unwrap();
                     let id = id_input.trim().parse::<i32>().ok();
@@ -41,11 +41,11 @@ pub async fn choose_customer(client: &Client, current_id_cust: &mut i32) -> Resu
                             *current_id_cust = id;
                             Ok(Some(customer))
                         } else {
-                            println!("Клиент с таким ID не найден.");
+                            println!("Клиент с таким id не найден.");
                             Ok(None)
                         }
                     } else {
-                        println!("Некорректный ввод ID.");
+                        println!("Некорректный ввод id.");
                         Ok(None)
                     }
                 }
@@ -64,7 +64,7 @@ pub async fn choose_customer(client: &Client, current_id_cust: &mut i32) -> Resu
             let mut email1: Option<String> = None;
             let mut budget1: Option<i32> = None;
             loop {
-                println!("1) id: {:?}", id1);
+                println!("\n\n\n1) id: {:?}", id1);
                 println!("2) name: {:?}", name1);
                 println!("3) phone: {:?}", phone1);
                 println!("4) email: {:?}", email1);
@@ -119,19 +119,20 @@ pub async fn choose_customer(client: &Client, current_id_cust: &mut i32) -> Resu
                             println!("{}", customer.pretty_print_customers());
                         }
 
-                        println!("Введите ID клиента для выбора:");
+                        println!("\n\n\nВведите id клиента для выбора:");
                         let mut id_input = String::new();
                         io::stdin().read_line(&mut id_input).unwrap();
                         let id = id_input.trim().parse::<i32>().ok();
+                        *current_id_cust = id.clone().unwrap();
 
                         if let Some(id) = id {
                             if let Some(customer) = customers.into_iter().find(|c| c.id == Some(id)) {
                                 return Ok(Some(customer));
                             } else {
-                                println!("Клиент с таким ID не найден.");
+                                println!("Клиент с таким id не найден.");
                             }
                         } else {
-                            println!("Некорректный ввод ID.");
+                            println!("Некорректный ввод id.");
                         }
                     }
                 }
@@ -140,11 +141,10 @@ pub async fn choose_customer(client: &Client, current_id_cust: &mut i32) -> Resu
                     return Err(err)
                 }
             }
-
             Ok(None)
-        }
+        },
         _ => {
-            input_error();
+            input_error().await;
             Ok(None)
         }
     }
