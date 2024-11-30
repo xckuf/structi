@@ -137,16 +137,49 @@ pub async fn settings_empl(client: &Client) -> Result<(), Error> {
 
             let input2 = from_str_to_int(input_str.trim()).await;
 
-            match delete_employee(&client, input2).await {
-                Ok(message) => {
-                    println!("{}", message);
-                    Ok(())
-                },
-                Err(err) => {
-                    eprintln!("Ошибка при удалении работника: {:?}", err);
-                    Err(err)
+            let mut password = String::new();
+            println!("Для удаления работника введите пароль:");
+            io::stdout().flush().unwrap();
+            io::stdin().read_line(&mut password).unwrap();
+            let password = password.trim();
+            if password == "qwerty123" {
+                match delete_employee(&client, input2).await {
+                    Ok(message) => {
+                        println!("{}", message);
+                        Ok(())
+                    },
+                    Err(err) => {
+                        eprintln!("Ошибка при удалении работника: {:?}", err);
+                        Err(err)
+                    }
                 }
+            } else {
+                println!("Неверный пароль. Вы не можете удалить сотрудника");
+                Ok(())
             }
+
+            // match get_role(&client, current_id_empl).await {
+            //     Ok(true) => {
+            //         match delete_employee(&client, input2).await {
+            //             Ok(message) => {
+            //                 println!("{}", message);
+            //                 Ok(())
+            //             }
+            //             Err(err) => {
+            //                 eprintln!("Ошибка при удалении работника: {:?}", err);
+            //                 Err(err)
+            //             }
+            //         }
+            //     }
+            //     Ok(false) => {
+            //         println!("Пока пока: у вас нет прав на удаление сотрудников.");
+            //         Ok(())
+            //     }
+            //     Err(err) => {
+            //         eprintln!("Ошибка при проверке роли: {:?}", err);
+            //         Err(err)
+            //     }
+            // }
         },
         "3" => Ok(()),
         _ => {

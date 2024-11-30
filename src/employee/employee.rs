@@ -81,6 +81,19 @@ pub async fn get_employee(client: &Client, employee_id: i32) -> Result<Option<Em
     }
 }
 
+// pub async fn get_role(client: &Client, employee_id: i32) -> Result<bool, Error> {
+//     let query = "SELECT position FROM employee WHERE id = $1";
+//     let row = client.query_opt(query, &[&employee_id]).await?;
+//
+//     if let Some(row) = row {
+//         let position: String = row.get(0);
+//         Ok(position == "Старший администратор")
+//     } else {
+//         Ok(false)
+//     }
+// }
+
+
 // pub async fn search_employees(
 //     client: &Client,
 //     name: Option<String>,

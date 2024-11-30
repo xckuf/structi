@@ -300,7 +300,7 @@ async fn main() -> Result<(), Error> {
                     }
                 }
             },
-            "7" => {
+            "7" => { //поиск
                 loop {
                     match search(&client).await {
                         Ok(_) => break,
