@@ -4,11 +4,11 @@ use crate::employee::employee::{delete_employee, get_employee, update_employee};
 use crate::models::models::Employee;
 use crate::prelude::prelude_valid::*;
 
-pub async fn settings_empl(client: &Client) -> Result<(), Error> {
+pub async fn settings_empl(client: &Client, employee_id: i32) -> Result<(), Error> {
     let mut input1 = String::new();
 
-    println!("\n\n\n1 - Редактировать работника");
-    println!("2 - Удалить работника");
+    println!("\n\n\n1 - Редактировать сотрудника");
+    println!("2 - Удалить сотрудника");
     println!("3 - Выход");
 
     io::stdout().flush().unwrap();
@@ -18,7 +18,7 @@ pub async fn settings_empl(client: &Client) -> Result<(), Error> {
         "1" =>{ //Редактировать работника
             let employee_id = loop {
                 let mut input = String::new();
-                println!("Введите id заказа, данные которой хотите обновить:");
+                println!("Введите id сотрудника, данные которой хотите обновить:");
                 io::stdout().flush().unwrap();
                 io::stdin().read_line(&mut input).unwrap();
                 match input.trim().parse::<i32>() {
@@ -40,7 +40,7 @@ pub async fn settings_empl(client: &Client) -> Result<(), Error> {
                     hire_date1 = employee.hire_date;
                 }
                 Ok(None) => {
-                    println!("Работник с ID {} не найден.", employee_id);
+                    println!("Работник с id {} не найден.", employee_id);
                 }
                 Err(err) => {
                     eprintln!("Ошибка при получении работника: {:?}", err);
@@ -137,25 +137,30 @@ pub async fn settings_empl(client: &Client) -> Result<(), Error> {
 
             let input2 = from_str_to_int(input_str.trim()).await;
 
-            let mut password = String::new();
-            println!("Для удаления работника введите пароль:");
-            io::stdout().flush().unwrap();
-            io::stdin().read_line(&mut password).unwrap();
-            let password = password.trim();
-            if password == "qwerty123" {
-                match delete_employee(&client, input2).await {
-                    Ok(message) => {
-                        println!("{}", message);
-                        Ok(())
-                    },
-                    Err(err) => {
-                        eprintln!("Ошибка при удалении работника: {:?}", err);
-                        Err(err)
-                    }
-                }
-            } else {
-                println!("Неверный пароль. Вы не можете удалить сотрудника");
+            if input2 == employee_id {
+                println!("Вы не можете удалить этого работника, т.к. сейчас находитесь на этой учетной записи");
                 Ok(())
+            } else {
+                let mut password = String::new();
+                println!("Для удаления работника введите пароль:");
+                io::stdout().flush().unwrap();
+                io::stdin().read_line(&mut password).unwrap();
+                let password = password.trim();
+                if password == "qwerty123" {
+                    match delete_employee(&client, input2).await {
+                        Ok(message) => {
+                            println!("{}", message);
+                            Ok(())
+                        },
+                        Err(err) => {
+                            eprintln!("Ошибка при удалении работника: {:?}", err);
+                            Err(err)
+                        }
+                    }
+                } else {
+                    println!("Неверный пароль. Вы не можете удалить сотрудника");
+                    Ok(())
+                }
             }
 
             // match get_role(&client, current_id_empl).await {

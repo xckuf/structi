@@ -7,7 +7,6 @@ use chrono::Local;
 mod prelude;
 use prelude::prelude_main::*;
 
-
 mod customer;
 mod employee;
 mod order;
@@ -17,6 +16,7 @@ mod validation;
 mod enums;
 mod settings;
 mod sleep;
+mod search;
 
 #[tokio::main]
 async fn main() -> Result<(), Error> {
@@ -89,7 +89,7 @@ async fn main() -> Result<(), Error> {
     loop {
         let mut input = String::new();
 
-        println!("1 - Войти\n2 - Создать работника");
+        println!("1 - Войти\n2 - Создать сотрудника");
         io::stdin().read_line(&mut input).expect("Ошибка при чтении");
 
         match input.as_str().trim() {
@@ -172,7 +172,7 @@ async fn main() -> Result<(), Error> {
 
                 match create_employee(&client, new_empl).await {
                     Ok(employee_id) => {
-                        println!("\n\n\nНовый сотрудник создан с ID: {}", employee_id);
+                        println!("\n\n\nНовый сотрудник создан с id: {}", employee_id);
                         current_id_empl = employee_id;
                     },
                     Err(err) => eprintln!("\n\n\nОшибка при добавлении сотрудника: {:?}", err),
@@ -313,7 +313,7 @@ async fn main() -> Result<(), Error> {
             },
             "8" => {//настройки
                 loop {
-                    match settings(&client).await {
+                    match settings(&client, current_id_empl).await {
                         Ok(_) => {
                             println!("Возврат в главное меню...");
                             sleep_700mil().await;

@@ -6,7 +6,7 @@ use crate::settings::settings_empl::settings_empl;
 use crate::settings::settings_order::settings_order;
 use crate::validation::input_error::input_error;
 
-pub async fn settings(client: &Client) -> Result<(), Error> {
+pub async fn settings(client: &Client, employee_id: i32) -> Result<(), Error> {
     let mut input = String::new();
 
     println!("\n\n\n1 - Клиент");
@@ -23,7 +23,7 @@ pub async fn settings(client: &Client) -> Result<(), Error> {
             settings_cust(&client).await
         },
         "2" => {//Работник
-            settings_empl(&client).await
+            settings_empl(&client, employee_id).await
         },
         "3" => { //Автомобиль
             settings_car(&client).await

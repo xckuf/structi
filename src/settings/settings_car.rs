@@ -44,7 +44,7 @@ pub async fn settings_car(client: &Client) -> Result<(), Error> {
                     is_new1 = car.is_new;
                 }
                 Ok(None) => {
-                    println!("Машина с ID {} не найден.", car_id);
+                    println!("Машина с id {} не найден.", car_id);
                 }
                 Err(err) => {
                     eprintln!("Ошибка при получении машины: {:?}", err);
