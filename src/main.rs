@@ -337,15 +337,4 @@ async fn main() -> Result<(), Error> {
     Ok(())
 }
 
-use std::io;
-
-use std::io;
-fn nemain(mut chisl: i32, mut znam: i32) -> i32 {
-    while znam != 0 {
-        let a = znam;
-        znam = chisl % znam;
-        chisl = a;
-    }
-    chisl
-}
 
